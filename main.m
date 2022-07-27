@@ -1,0 +1,108 @@
+%     
+%     D E S C R I P T I O N 
+% 
+%     This code is prepared to calculate the number of Tpms on single 
+%     actin filament in the following steps;
+%     (see readme.txt for more info) 
+%     Final output is in T3_Tab3DataCombined1 for ch1 and T3_Tab3DataCombined2
+%     for ch2
+
+%CLEAN THE WORKSTATION
+    
+    clear all;clc;   %Clear all the variables 
+    CurrentPName=[pwd '\']; % define the current working directory as the path 
+
+% SETTINGS
+    % a) Default: 0.1; indictive of when the background level is reached
+    % b) How big of a cut to take out of imageData around each PSF   
+    % c) Estimated value to give a code a starting point to work on
+    
+    config.noisetol        =  0.1;   
+    config.domain_rad      =  4;     
+    config.PSF             =  3;      
+    config.tolerance       = -0.001; % def -1 [not sure?]
+    config.Mask_ROI_length =  3;
+    config.Mask_ROI_width  =  4;
+ 
+%DEFINE TPM Amplitude and sigma value 
+
+Tpm = 1;    % 1=Tpm1.1 2=tpm1.6
+
+    if Tpm==1
+    
+        % Signal amplitude and sigma value in channel 1: 
+        AmpSMch1Avg=345.45; 
+        SigmaSMch1Avg=1.69; 
+    
+        % Signal amplitude and sigma value in channel 2: 
+        AmpSMch2Avg=426.35;      
+        SigmaSMch2Avg=1.37;
+    
+    elseif Tpm==2
+    
+        % Signal amplitude and sigma value in channel 1: 
+        AmpSMch1Avg=642.08;
+        SigmaSMch1Avg=1.58;
+    
+        % Signal amplitude and sigma value in channel 2:
+        AmpSMch2Avg=460.4;
+        SigmaSMch2Avg=1.43; 
+    end
+
+
+  
+% GET THE FILE and make a new directory 
+[fName, pName] = uigetfile('*.tif');
+
+fName_no_Extention= fName(1:length(fName)-4);
+%make a new directory for each file
+    %make
+    mkdir(num2str(CurrentPName),fName_no_Extention);
+    % get the new path
+    FolderDestination=strcat(num2str(CurrentPName),fName_no_Extention);
+    % make  a name for mfile in new path
+    fName_output = fullfile(FolderDestination, [fName_no_Extention '.mat']);
+
+% strcat (CurrentPName,newDirectoryName);
+
+
+% F U N C T I O N S 
+    part01     % Select the rectangle around the filament to Crop
+    part02     % Draw a line on the filament to generate a mask
+               % Select background region to calculate background noise
+
+    pause(2)
+    close all
+
+    %part03     % Draw a line on the filament (can be removed) select
+              
+    part03     % Fit the signal to 2D Gaussian function ->deflate
+               % -> (deconvolve)->repeate
+    part04     % Remove peaks outside the filament
+
+    part05
+    
+
+    save(fName_output);
+
+    table_ch1 =Tab_lim_Sig_Amp_Ch1;
+    table_ch2 =Tab_lim_Sig_Amp_Ch2;
+
+     imcomp(I1,I2,'y','n');
+        
+        current_fig_position =[100,100,1256,247.2];
+        set(gcf,'Position',current_fig_position) 
+
+        hold on;
+        plot(T3_Tab3DataCombined1.x,T3_Tab3DataCombined1.y,'*r','MarkerSize',10);
+        text(T3_Tab3DataCombined1.x-1,T3_Tab3DataCombined1.y-6, ...
+            num2str(T3_Tab3DataCombined1.TmNoCom,'%1.0f'),'color','w', 'FontSize', 20);%num2str(A(i,4))
+        plot(T3_Tab3DataCombined2.x,T3_Tab3DataCombined2.y,'+b','MarkerSize',10);
+        text(T3_Tab3DataCombined2.x-1,T3_Tab3DataCombined2.y+6, ...
+            num2str(T3_Tab3DataCombined2.TmNoCom,'%1.0f'),'color','c', 'FontSize', 20);%num2str(A(i,4))
+        text(3,3, num2str(fName_no_Extention),'color','w', 'FontSize', 15);%num2str(A(i,4))
+
+        hold off
+save(fName_output);
+
+        
